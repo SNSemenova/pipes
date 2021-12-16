@@ -1,21 +1,24 @@
 import './App.css';
 import {useContext} from "react";
-import {SocketContext} from "./SocketManager.tsx";
-import {Counter} from "./features/counter/Counter";
+import {SocketContext} from "./SocketManager";
+import PipesMap from "./components/PipesMap";
 
 function App() {
+
   const socket = useContext(SocketContext);
+
+  function startGame() {
+    socket.sendMessage('new 1');
+    socket.sendMessage('map');
+  }
 
   return (
     <div className="App">
       <header>
       </header>
       <main>
-        {/*{ map ? map.map(line => <div>*/}
-        {/*  { line.split('').map(segment => <button>{segment}</button>) }*/}
-        {/*</div>) : typeof map }*/}
-        <button onClick={() => socket.sendMessage(1, 'map')}>Start</button>
-        <Counter/>
+        <PipesMap/>
+        <button onClick={startGame}>Start</button>
       </main>
     </div>
   );

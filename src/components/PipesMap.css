@@ -1,0 +1,15 @@
+.puzzle-segment {
+    padding: 0;
+    line-height: 20px;
+    font-size: 20px;
+}
+
+.puzzle-line {
+    display: flex;
+}
+
+.puzzle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
