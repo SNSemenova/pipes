@@ -1,6 +1,8 @@
-import React, {createContext, useContext, useEffect} from "react";
-import {useDispatch} from "react-redux";
+import React, {createContext, useEffect} from "react";
+import {useDispatch, useSelector} from "react-redux";
 import {update} from "./components/mapSlice";
+import {increment} from "./components/levelSlice";
+import {RootState} from "./app/store";
 
 export const SocketContext = createContext({} as WS);
 
@@ -15,6 +17,8 @@ export const SocketManager: React.FC<null> = ({children}) => {
   let socket: WebSocket;
   let ws: WS;
 
+  const level = useSelector((state: RootState) => state.level.value)
+
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -24,7 +28,11 @@ export const SocketManager: React.FC<null> = ({children}) => {
   })
 
   function getMessage(event: MessageEvent) {
-    switch (event.data.split(' ')[0]) {
+    let eventName = event.data.split(' ')[0];
+    if (typeof eventName === 'string') {
+      eventName = eventName.split('\n')[0];
+    }
+    switch (eventName) {
       case 'map:': {
         console.log(typeof event.data, event.data.split('\n').slice(1, -1));
         dispatch(update(event.data.split('\n').slice(1, -1)));
@@ -33,20 +41,32 @@ export const SocketManager: React.FC<null> = ({children}) => {
       case 'verify:': {
         if (event.data.includes('Correct!')) {
           const password = event.data.split(' ').pop();
-          console.log(`password: ${password}`)
-          alert('You win')
+          console.log(`password: ${password}`);
+          alert('You win');
+          dispatch(increment());
+          startNewLevel();
         }
+        return;
       }
-    }
-    if (event.data.includes
-    ('map:')) {
-      console.log(typeof event.data, event.data.split('\n').slice(1, -1));
-      dispatch(update(event.data.split('\n').slice(1, -1)))
     }
   }
 
+  function startNewLevel() {
+    socket.send(`new ${level}`);
+    socket.send('map');
+  }
+
   const sendMessage = (message: string) => {
-    socket.send(message);
+    switch (message) {
+      case 'start': {
+        startNewLevel();
+        return;
+      }
+      default: {
+        socket.send(message);
+        return;
+      }
+    }
   }
 
   socket = new WebSocket(SERVER_URL);
