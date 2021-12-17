@@ -1,15 +1,28 @@
 .puzzle-segment {
     padding: 0;
-    line-height: 20px;
+    line-height: 19px;
     font-size: 20px;
+    border: solid 1px grey;
+    border-top: none;
+    border-left: none;
+    background: none;
+    width: 20px;
+}
+
+.puzzle-segment:first-child {
+    border-left: solid 1px grey;
 }
 
 .puzzle-line {
     display: flex;
 }
 
+.puzzle-line:first-child .puzzle-segment {
+    border-top: solid 1px grey;
+}
+
 .puzzle {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: center;
 }

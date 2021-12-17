@@ -1,8 +1,8 @@
 import React, {createContext, useEffect} from "react";
-import {useDispatch, useSelector} from "react-redux";
+import {useDispatch} from "react-redux";
 import {update} from "./components/mapSlice";
 import {increment} from "./components/levelSlice";
-import {RootState} from "./app/store";
+import {verify} from "./app/verifier";
 
 export const SocketContext = createContext({} as WS);
 
@@ -16,8 +16,6 @@ type WS = {
 export const SocketManager: React.FC<null> = ({children}) => {
   let socket: WebSocket;
   let ws: WS;
-
-  const level = useSelector((state: RootState) => state.level.value)
 
   const dispatch = useDispatch()
 
@@ -34,8 +32,11 @@ export const SocketManager: React.FC<null> = ({children}) => {
     }
     switch (eventName) {
       case 'map:': {
-        console.log(typeof event.data, event.data.split('\n').slice(1, -1));
-        dispatch(update(event.data.split('\n').slice(1, -1)));
+        const puzzleMap = event.data.split('\n').slice(1, -1);
+        if (verify(puzzleMap)) {
+          sendMessage('verify');
+        }
+        dispatch(update(puzzleMap));
         return;
       }
       case 'verify:': {
@@ -44,33 +45,24 @@ export const SocketManager: React.FC<null> = ({children}) => {
           console.log(`password: ${password}`);
           alert('You win');
           dispatch(increment());
-          startNewLevel();
         }
         return;
       }
     }
   }
 
-  function startNewLevel() {
-    socket.send(`new ${level}`);
+  function startNewLevel(currentLevel: number) {
+    socket.send(`new ${currentLevel}`);
     socket.send('map');
   }
 
   const sendMessage = (message: string) => {
-    switch (message) {
-      case 'start': {
-        startNewLevel();
-        return;
-      }
-      default: {
-        socket.send(message);
-        return;
-      }
-    }
+    socket.send(message);
   }
 
   socket = new WebSocket(SERVER_URL);
 
+  socket.addEventListener('open', () => startNewLevel(1));
   socket.addEventListener('message', getMessage);
 
   ws = {
