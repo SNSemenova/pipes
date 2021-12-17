@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
-import mapReducer from "../components/mapSlice";
-import levelReducer from "../components/levelSlice"
+import mapReducer from "./mapSlice";
+import levelReducer from "./levelSlice"
 
 export const store = configureStore({
   reducer: {

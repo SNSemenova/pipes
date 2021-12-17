@@ -1,7 +1,7 @@
 import React, {createContext, useEffect} from "react";
 import {useDispatch} from "react-redux";
-import {update} from "./components/mapSlice";
-import {increment} from "./components/levelSlice";
+import {update} from "./app/mapSlice";
+import {increment} from "./app/levelSlice";
 import {verify} from "./app/verifier";
 
 export const SocketContext = createContext({} as WS);

@@ -1,5 +1,5 @@
 import './App.css';
-import PipesMap from "./components/PipesMap";
+import PipesMap from "./components/PipesMap/PipesMap";
 
 function App() {
   return (

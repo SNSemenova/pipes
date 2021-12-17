@@ -1,6 +1,6 @@
-import { RootState } from '../app/store'
+import { RootState } from '../../app/store'
 import { useSelector } from 'react-redux'
-import {SocketContext} from "../SocketManager";
+import {SocketContext} from "../../SocketManager";
 import {useContext, useEffect} from "react";
 import "./PipesMap.css"
 
