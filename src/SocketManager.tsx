@@ -6,7 +6,7 @@ import {verify} from "./app/verifier";
 
 export const SocketContext = createContext({} as WS);
 
-const SERVER_URL = 'ws://lasting-buzzing-catfish.gigalixirapp.com/api/ws';
+const SERVER_URL = 'wss://lasting-buzzing-catfish.gigalixirapp.com/api/ws';
 
 type WS = {
   socket: WebSocket,
