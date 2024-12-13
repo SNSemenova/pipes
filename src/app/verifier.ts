@@ -51,6 +51,19 @@ const verificationMap: VerificationMap = {
   },
 }
 
+const getAdjacentIndexes = (direction: Direction, lineIndex: number, symbolIndex: number) => {
+  let newLineIndex = lineIndex;
+  let newSymbolIndex = symbolIndex;
+  const adjacentIndexes = {
+    [Direction.Top]: () => newLineIndex--,
+    [Direction.Bottom]: () => newLineIndex++,
+    [Direction.Left]: () => newSymbolIndex--,
+    [Direction.Right]: () => newSymbolIndex++,
+  };
+  adjacentIndexes[direction]()
+  return `${newLineIndex},${newSymbolIndex}`
+}
+
 export function verify(puzzleMap: string[]) {
   for (let lineIndex = 0; lineIndex < puzzleMap.length; lineIndex++) {
     const currentLineArray = puzzleMap[lineIndex].split('');
@@ -63,4 +76,43 @@ export function verify(puzzleMap: string[]) {
     }
   }
   return true;
+}
+
+export const rotationMap: Record<string, string> = {
+  '╻': '╸',
+  '╺': '╻',
+  '╹': '╺',
+  '╸': '╹',
+  '┗': '┏',
+  '┏': '┓',
+  '┓': '┛',
+  '┛': '┗',
+  '━': '┃',
+  '┃': '━',
+  '┫': '┻',
+  '┳': '┫',
+  '┻': '┣',
+  '┣': '┳',
+  '╋': '╋'
+};
+
+export function checkConnections(puzzleMap: string[], connections: Array<string>[], lineIndex: number, symbolIndex: number) {
+  let newElement = rotationMap[puzzleMap[lineIndex][symbolIndex]]
+  let newConnections = [...connections];
+  for (let direction of symbolsMap[newElement]) {
+    if (verificationMap[direction](puzzleMap, lineIndex, symbolIndex)) {
+      let adjacentIndexes = getAdjacentIndexes(direction, lineIndex, symbolIndex);
+      let groupIndex = connections.findIndex(group => group.includes(`${lineIndex},${symbolIndex}`));
+      if (groupIndex > -1) {
+        if (!newConnections[groupIndex].includes(adjacentIndexes)) {
+          console.log('group:', newConnections[groupIndex])
+          newConnections[groupIndex] = [...newConnections[groupIndex], adjacentIndexes]
+        }
+      } else {
+        const newGroup = [`${lineIndex},${symbolIndex}`, adjacentIndexes]
+        newConnections = [...newConnections, newGroup]
+      }
+    }
+  }
+  return newConnections;
 }
