@@ -2,7 +2,8 @@ import React, {createContext, useEffect} from "react";
 import {useDispatch} from "react-redux";
 import {update} from "./app/mapSlice";
 import {increment} from "./app/levelSlice";
-import {verify} from "./app/verifier";
+import {checkConnections} from "./app/verifier";
+import {update as connectionUpdate} from "./app/connectionsSlice";
 
 export const SocketContext = createContext({} as WS);
 
@@ -33,10 +34,12 @@ export const SocketManager: React.FC<null> = ({children}) => {
     switch (eventName) {
       case 'map:': {
         const puzzleMap = event.data.split('\n').slice(1, -1);
-        if (verify(puzzleMap)) {
+        dispatch(update(puzzleMap));
+        let connections = checkConnections(puzzleMap)
+        if (connections.length === 1 && connections[0].length === puzzleMap.length * puzzleMap.length) {
           sendMessage('verify');
         }
-        dispatch(update(puzzleMap));
+        dispatch(connectionUpdate(connections))
         return;
       }
       case 'verify:': {
