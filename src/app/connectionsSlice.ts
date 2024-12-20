@@ -1,7 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+type Group = {
+  elements: string[],
+  color: string
+}
+
 export interface MapState {
-  value: Array<string>[]
+  value: Group[]
 }
 
 const initialState: MapState = {
@@ -12,7 +17,7 @@ export const connectionsSlice = createSlice({
   name: 'connections',
   initialState,
   reducers: {
-    update: (state, action: PayloadAction<Array<string>[]>) => {
+    update: (state, action: PayloadAction<Group[]>) => {
       state.value = action.payload
     },
   },

@@ -1,5 +1,5 @@
 import React, {createContext, useEffect} from "react";
-import {useDispatch} from "react-redux";
+import {useDispatch, useStore} from "react-redux";
 import {update} from "./app/mapSlice";
 import {increment} from "./app/levelSlice";
 import {checkConnections} from "./app/verifier";
@@ -26,6 +26,8 @@ export const SocketManager: React.FC<null> = ({children}) => {
     }
   })
 
+  const store = useStore();
+
   function getMessage(event: MessageEvent) {
     let eventName = event.data.split(' ')[0];
     if (typeof eventName === 'string') {
@@ -35,8 +37,8 @@ export const SocketManager: React.FC<null> = ({children}) => {
       case 'map:': {
         const puzzleMap = event.data.split('\n').slice(1, -1);
         dispatch(update(puzzleMap));
-        let connections = checkConnections(puzzleMap)
-        if (connections.length === 1 && connections[0].length === puzzleMap.length * puzzleMap.length) {
+        let connections = checkConnections(puzzleMap, store.getState().connections.value)
+        if (connections.length === 1 && connections[0].elements.length === puzzleMap.length * puzzleMap.length) {
           sendMessage('verify');
         }
         dispatch(connectionUpdate(connections))

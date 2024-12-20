@@ -1,3 +1,5 @@
+import { RootState } from './store'
+
 export type Map = {
   [key: string]: Direction[];
 };
@@ -82,8 +84,8 @@ export const rotationMap: Record<string, string> = {
   '╋': '╋'
 };
 
-export function checkConnections(puzzleMap: string[]) {
-  let connections: Array<string>[] = []
+export function checkConnections(puzzleMap: string[], oldConnections: RootState['connections']['value']) {
+  let connections = [...oldConnections.map(group => ({elements: [...group.elements], color: group.color}))]
   for (let lineIndex = 0; lineIndex < puzzleMap.length; lineIndex++) {
     const currentLineArray = puzzleMap[lineIndex].split('');
     for (let symbolIndex = 0; symbolIndex < currentLineArray.length; symbolIndex++) {
@@ -91,22 +93,22 @@ export function checkConnections(puzzleMap: string[]) {
         if (verificationMap[direction](puzzleMap, lineIndex, symbolIndex)) {
           let adjacentIndexes = getAdjacentIndexes(direction, lineIndex, symbolIndex);
           let indicesString = `${lineIndex},${symbolIndex}`;
-          let groupIndex = connections.findIndex(group => group.includes(indicesString));
-          let otherGroupIndex = connections.findIndex(group => group.includes(adjacentIndexes));
+          let groupIndex = connections.findIndex(group => group.elements.includes(indicesString));
+          let otherGroupIndex = connections.findIndex(group => group.elements.includes(adjacentIndexes));
           if (groupIndex > -1) {
-            if (!connections[groupIndex].includes(adjacentIndexes)) {
+            if (!connections[groupIndex].elements.includes(adjacentIndexes)) {
               if (otherGroupIndex > -1) {
-                connections[groupIndex] = [...connections[groupIndex], ...connections[otherGroupIndex]]
+                connections[groupIndex].elements = [...connections[groupIndex].elements, ...connections[otherGroupIndex].elements]
                 connections.splice(otherGroupIndex, 1);
               } else {
-                connections[groupIndex] = [...connections[groupIndex], adjacentIndexes]
+                connections[groupIndex].elements = [...connections[groupIndex].elements, adjacentIndexes]
               }
             }
           } else {
             if (otherGroupIndex > -1) {
-              connections[otherGroupIndex] = [...connections[otherGroupIndex], indicesString]
+              connections[otherGroupIndex].elements = [...connections[otherGroupIndex].elements, indicesString]
             } else {
-              const newGroup = [indicesString, adjacentIndexes]
+              const newGroup = {elements: [indicesString, adjacentIndexes], color: `#${generateColor()}`}
               connections = [...connections, newGroup]
             }
           }
@@ -115,4 +117,8 @@ export function checkConnections(puzzleMap: string[]) {
     }
   }
   return connections
+}
+
+const generateColor = () => {
+  return Math.random().toString(16).slice(-6)
 }

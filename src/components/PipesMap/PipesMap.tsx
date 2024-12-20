@@ -3,12 +3,15 @@ import { useSelector } from 'react-redux'
 import {SocketContext} from "../../SocketManager";
 import {useContext, useEffect} from "react";
 import "./PipesMap.css"
+import useSegmentColor from './useSegmentColor';
 
 function PipesMap(): JSX.Element {
   const socket = useContext(SocketContext);
 
   const level = useSelector((state: RootState) => state.level.value)
   const map = useSelector((state: RootState) => state.map.value)
+
+  const getSegmentColor = useSegmentColor();
 
   function rotateSegment(lineIndex: number, segmentIndex: number) {
     socket.sendMessage(`rotate ${segmentIndex} ${lineIndex}`);
@@ -31,6 +34,7 @@ function PipesMap(): JSX.Element {
               className="puzzle-segment"
               key={`${lineIndex}-${segmentIndex}`}
               onClick={() => rotateSegment(lineIndex, segmentIndex)}
+              style={{color: getSegmentColor(lineIndex, segmentIndex)}}
             >{segment}</button>
           }
         )}
