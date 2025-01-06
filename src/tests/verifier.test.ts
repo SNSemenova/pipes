@@ -1,5 +1,5 @@
 import { assert, expect, test } from 'vitest'
-import { checkConnections } from '../app/verifier'
+import { checkConnections, removeOldConnections } from '../app/verifier'
 
 test('return no groups', () => {
   const result = checkConnections(['╻'], [])
@@ -44,13 +44,41 @@ test('adds more groups', () => {
   assert.deepPropertyVal(result[1], 'elements', ['1,0', '1,1'])
 })
 
-test.skip('removes disconnected element', () => {
-  const result = checkConnections(['┏━┗'], [{elements: ['0,0', '0,1', '0,2'], color: '#000000'}])
+test('removes disconnected element', () => {
+  const result = removeOldConnections(['┏━┛'], [{elements: ['0,0', '0,1', '0,2'], color: '#000000'}], 0, 2)
   expect(result).toHaveLength(1)
-  expect(result[0]).toEqual({elements: ['0,0', '0,1'], color: '#000000'})
+  expect(result[0]).toEqual({elements: ['0,1', '0,0'], color: '#000000'})
 })
 
-test.skip('removes disconnected group', () => {
-  const result = checkConnections(['┏┗'], [{elements: ['0,0', '0,1'], color: '#000000'}])
+test('removes disconnected group', () => {
+  const result = removeOldConnections(['┏┛'], [{elements: ['0,0', '0,1'], color: '#000000'}], 0, 1)
   expect(result).toHaveLength(0)
+})
+
+test('removes disconnected head', () => {
+  const result = removeOldConnections(['╺━━┛'], [{elements: ['0,0', '0,1', '0,2', '0,3'], color: '#000000'}], 0, 1)
+  expect(result).toHaveLength(1)
+  expect(result[0]).toEqual({elements: ['0,2', '0,3'], color: '#000000'})
+})
+
+test('removes disconnected beginning', () => {
+  const result = removeOldConnections(['┏━━┛'], [{elements: ['0,0', '0,1', '0,2', '0,3'], color: '#000000'}], 0, 1)
+  expect(result).toHaveLength(1)
+  expect(result[0]).toEqual({elements: ['0,2', '0,3'], color: '#000000'})
+})
+
+test.todo('generates a color', () => {
+  expect(true).toBe(true)
+})
+
+test('gets group base', () => {
+  const result = removeOldConnections(['┏┻┓'], [{elements: ['0,0', '0,1', '0,2'], color: '#000000'}], 0, 1)
+  expect(result).toHaveLength(1)
+  expect(result[0]).toEqual({elements: ['0,1', '0,2'], color: '#000000'})
+})
+
+test('changes group base', () => {
+  const result = removeOldConnections(['┏┛┓'], [{elements: ['0,0', '0,1'], color: '#000000'}], 0, 1)
+  expect(result).toHaveLength(1)
+  expect(result[0]).toEqual({elements: ['0,1', '0,2'], color: '#000000'})
 })
