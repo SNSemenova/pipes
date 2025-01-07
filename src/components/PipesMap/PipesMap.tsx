@@ -6,6 +6,7 @@ import "./PipesMap.css"
 import useSegmentColor from './useSegmentColor';
 import {removeOldConnections} from "../../app/verifier";
 import {update} from "../../app/connectionsSlice";
+import Segment from './Segment';
 
 function PipesMap(): JSX.Element {
   const socket = useContext(SocketContext);
@@ -32,6 +33,26 @@ function PipesMap(): JSX.Element {
     }
   }, [level, socket])
 
+  function getJustifyItems(segment: string) {
+    if (segment === '╺') {
+      return 'end'
+    } else if (segment === '╸') {
+      return 'start'
+    } else {
+      return 'center'
+    }
+  }
+
+  function getAlignItems(segment: string) {
+    if (segment === '╻' || segment === '┏' || segment === '┓') {
+      return 'end'
+    } else if (segment === '╹' || segment === '┗' || segment === '┛') {
+      return 'start'
+    } else {
+      return 'center'
+    }
+  }
+
   return <div>
     <h1>Level {level}</h1>
     <div className="puzzle">
@@ -41,8 +62,12 @@ function PipesMap(): JSX.Element {
               className="puzzle-segment"
               key={`${lineIndex}-${segmentIndex}`}
               onClick={() => rotateSegment(lineIndex, segmentIndex)}
-              style={{color: getSegmentColor(lineIndex, segmentIndex)}}
-            >{segment}</button>
+              style={{
+                color: getSegmentColor(lineIndex, segmentIndex),
+                justifyContent: getJustifyItems(segment),
+                alignItems: getAlignItems(segment),
+              }}
+            ><Segment segment={segment} color={getSegmentColor(lineIndex, segmentIndex)} /></button>
           }
         )}
       </div>)}

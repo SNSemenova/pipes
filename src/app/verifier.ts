@@ -176,8 +176,8 @@ export function removeOldConnections(map: string[], connections: RootState['conn
   function getNewGroupElements() {
     for (let i = 0; i < disconnected.length; i++) {
       let adjacentIndexes = getAdjacentIndexes(disconnected[i], lineIndex, segmentIndex)
-      groupIndex = connections.findIndex(group => group.elements.includes(adjacentIndexes))
-      if (groupIndex > -1) {
+      let newGroupIndex = connections.findIndex(group => group.elements.includes(adjacentIndexes))
+      if (newGroupIndex > -1) {
         let adjacentIndicesArray = adjacentIndexes.split(',')
         let adjacentElement = map[parseInt(adjacentIndicesArray[0])].split('')[parseInt(adjacentIndicesArray[1])]
         let otherDirections = symbolsMap[adjacentElement]
@@ -190,6 +190,7 @@ export function removeOldConnections(map: string[], connections: RootState['conn
               let secondAdjacentDirections = getOtherDirections(map, secondAdjacent)
               for (let directionIndex = 0; directionIndex < secondAdjacentDirections.length; directionIndex++) {
                 if (getAdjacentIndexes(secondAdjacentDirections[directionIndex], parseInt(secondAdjacent[0]), parseInt(secondAdjacent[1])) === adjacentIndexes) {
+                  groupIndex = newGroupIndex
                   groupBase = [adjacentIndexes, secondAdjacentIndices]
                 }
               }

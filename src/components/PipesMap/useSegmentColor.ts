@@ -12,7 +12,7 @@ const useSegmentColor = () => {
 
   const getSegmentColor = (lineIndex: number, segmentIndex: number): string => {
     const segmentGroupNumber = getSegmentGroupNumber(lineIndex, segmentIndex)
-    return segmentGroupNumber > -1 ? connections[segmentGroupNumber].color : ''
+    return segmentGroupNumber > -1 ? connections[segmentGroupNumber].color : 'gray'
   }
   
   return getSegmentColor
