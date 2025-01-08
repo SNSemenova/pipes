@@ -162,16 +162,8 @@ export function removeOldConnections(map: string[], connections: RootState['conn
   let groupBase: Array<string> = []
   
   let disconnected = oldConnectedDirections.filter(direction => !connectionDirections.includes(direction))
-  let remainingDirections = oldConnectedDirections.filter(direction => connectionDirections.includes(direction))
 
-  if (disconnected.length > 0) {
-    if (remainingDirections.length > 0) {
-      groupBase = getGroupBase(connectionDirections, connections, lineIndex, segmentIndex, groupIndex, map)
-    } 
-    if (groupBase.length < 1) {
-      getNewGroupElements()
-    }
-  }
+  getNewGroupElements()
 
   function getNewGroupElements() {
     for (let i = 0; i < disconnected.length; i++) {
