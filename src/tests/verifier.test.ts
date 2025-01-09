@@ -44,6 +44,13 @@ test('adds more groups', () => {
   assert.deepPropertyVal(result[1], 'elements', ['1,0', '1,1'])
 })
 
+test('adds to old group on the right', () => {
+  const result = checkConnections(['━━━━'], [{elements: ['0,2', '0,3'], color: '#000000'}])
+  expect(result).toHaveLength(1)
+  assert.propertyVal(result[0], 'color', '#000000')
+  assert.deepPropertyVal(result[0], 'elements', ['0,0', '0,1', '0,2', '0,3'])
+})
+
 test('removes disconnected element', () => {
   const result = removeOldConnections(['┏━┛'], [{elements: ['0,0', '0,1', '0,2'], color: '#000000'}], 0, 2)
   expect(result).toHaveLength(1)
@@ -77,7 +84,7 @@ test('gets group base', () => {
   expect(result[0]).toEqual({elements: ['0,1', '0,2'], color: '#000000'})
 })
 
-test('changes group base', () => {
+test('adds new group base', () => {
   const result = removeOldConnections(['┏┛┓'], [{elements: ['0,0', '0,1'], color: '#000000'}], 0, 1)
   expect(result).toHaveLength(1)
   expect(result[0]).toEqual({elements: ['0,1', '0,2'], color: '#000000'})

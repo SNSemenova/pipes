@@ -100,8 +100,17 @@ export function checkConnections(puzzleMap: string[], oldConnections: RootState[
           if (groupIndex > -1) {
             if (!connections[groupIndex].elements.includes(adjacentIndexes)) {
               if (otherGroupIndex > -1) {
-                connections[otherGroupIndex].elements = [...connections[groupIndex].elements, ...connections[otherGroupIndex].elements]
-                connections.splice(groupIndex, 1);
+                let groupToUpdate: number
+                let groupToRemove: number
+                if (otherGroupIndex < groupIndex) {
+                  groupToUpdate = otherGroupIndex
+                  groupToRemove = groupIndex
+                } else {
+                  groupToUpdate = groupIndex
+                  groupToRemove = otherGroupIndex
+                }
+                connections[groupToUpdate].elements = [...connections[groupIndex].elements, ...connections[otherGroupIndex].elements]
+                connections.splice(groupToRemove, 1);
               } else {
                 connections[groupIndex].elements = [...connections[groupIndex].elements, adjacentIndexes]
               }
@@ -125,26 +134,6 @@ const generateColor = () => {
   return Math.random().toString(16).slice(-6)
 }
 
-function getGroupBase(connectionDirections: Direction[], connections: RootState['connections']['value'], lineIndex: number, segmentIndex: number, groupIndex: number, map: string[]) {
-  for (let i = 0; i < connectionDirections.length; i++) {
-    let adjacentIndexes = getAdjacentIndexes(connectionDirections[i], lineIndex, segmentIndex)
-    let currentIndices = `${lineIndex},${segmentIndex}`
-    if (connections[groupIndex].elements.includes(adjacentIndexes)) {
-      return [currentIndices, adjacentIndexes]
-    }
-    let adjacentIndicesArray = adjacentIndexes.split(',')
-    let adjacentElement = map[parseInt(adjacentIndicesArray[0])]?.split('')[parseInt(adjacentIndicesArray[1])]
-    let adjacentDirections = symbolsMap[adjacentElement] ?? []
-    for (let j = 0; j < adjacentDirections.length; j++) {
-      if (getAdjacentIndexes(adjacentDirections[j], parseInt(adjacentIndicesArray[0]), parseInt(adjacentIndicesArray[1])) === currentIndices) {
-        return [currentIndices, adjacentIndexes]
-      }
-    }
-  }
-
-  return []
-}
-
 export function removeOldConnections(map: string[], connections: RootState['connections']['value'], lineIndex: number, segmentIndex: number): any {
   let currentIndices = `${lineIndex},${segmentIndex}`
   let groupIndex = connections.findIndex(group => group.elements.includes(currentIndices))
@@ -155,19 +144,40 @@ export function removeOldConnections(map: string[], connections: RootState['conn
   
   let newConnections = [...connections.map(group => ({elements: [...group.elements], color: group.color}))]
   let element = map[lineIndex].split('')[segmentIndex]
-  let oldConnectedDirections = symbolsMap[element]
+  let oldDirections = symbolsMap[element]
   let newElement = rotationMap[element]
   let connectionDirections = symbolsMap[newElement]
-
+  let newDirections = connectionDirections.filter(direction => !oldDirections.includes(direction))
+  let remainingDirections = oldDirections.filter(direction => connectionDirections.includes(direction))
   let groupBase: Array<string> = []
   
-  let disconnected = oldConnectedDirections.filter(direction => !connectionDirections.includes(direction))
-
   getNewGroupElements()
 
   function getNewGroupElements() {
-    for (let i = 0; i < disconnected.length; i++) {
-      let adjacentIndexes = getAdjacentIndexes(disconnected[i], lineIndex, segmentIndex)
+    // check if old connections remain
+    for (let i = 0; i < remainingDirections.length; i++) {
+      let adjacentIndexes = getAdjacentIndexes(remainingDirections[i], lineIndex, segmentIndex)
+      // check if adjacent element is in the same group
+      if (connections[groupIndex].elements.includes(adjacentIndexes)) {
+        // check if adjacent element is connected to rotated element
+        let adjacentIndicesArray = adjacentIndexes.split(',')
+        let adjacentElement = map[parseInt(adjacentIndicesArray[0])].split('')[parseInt(adjacentIndicesArray[1])]
+        if (adjacentElement) {
+          let otherDirections = symbolsMap[adjacentElement]
+          for (let j = 0; j < otherDirections.length; j++) {
+            let secondAdjacentIndices = getAdjacentIndexes(otherDirections[j], parseInt(adjacentIndicesArray[0]), parseInt(adjacentIndicesArray[1]))
+            if (secondAdjacentIndices === currentIndices) {
+              groupBase = [currentIndices, adjacentIndexes]
+              return
+            }
+          }
+        }
+      }
+    }
+
+    // check if elements from old connections are still grouped
+    for (let i = 0; i < oldDirections.length; i++) {
+      let adjacentIndexes = getAdjacentIndexes(oldDirections[i], lineIndex, segmentIndex)
       let newGroupIndex = connections.findIndex(group => group.elements.includes(adjacentIndexes))
       if (newGroupIndex > -1) {
         let adjacentIndicesArray = adjacentIndexes.split(',')
@@ -175,7 +185,9 @@ export function removeOldConnections(map: string[], connections: RootState['conn
         let otherDirections = symbolsMap[adjacentElement]
         for (let j = 0; j < otherDirections.length; j++) {
           let secondAdjacentIndices = getAdjacentIndexes(otherDirections[j], parseInt(adjacentIndicesArray[0]), parseInt(adjacentIndicesArray[1]))
+          // check if current direction is not to rotated element, because it is already checked
           if (secondAdjacentIndices !== currentIndices) {
+            // check if adjacent elements are connected to each other
             let secondAdjacent = secondAdjacentIndices.split(',')
             if (parseInt(secondAdjacent[0]) < map.length && parseInt(secondAdjacent[1]) < map[0].length
               && parseInt(secondAdjacent[0]) >= 0 && parseInt(secondAdjacent[1]) >= 0) {
@@ -184,9 +196,34 @@ export function removeOldConnections(map: string[], connections: RootState['conn
                 if (getAdjacentIndexes(secondAdjacentDirections[directionIndex], parseInt(secondAdjacent[0]), parseInt(secondAdjacent[1])) === adjacentIndexes) {
                   groupIndex = newGroupIndex
                   groupBase = [adjacentIndexes, secondAdjacentIndices]
+                  return
                 }
               }
             }
+          }
+        }
+      }
+    }
+    
+    // check new connections if the old group is not found
+    for (let i = 0; i < newDirections.length; i++) {
+      let adjacentIndexes = getAdjacentIndexes(newDirections[i], lineIndex, segmentIndex)
+      
+      let adjacentIndicesArray = adjacentIndexes.split(',')
+      let adjacentElement = map[parseInt(adjacentIndicesArray[0])].split('')[parseInt(adjacentIndicesArray[1])]
+      if (adjacentElement) {
+        let otherDirections = symbolsMap[adjacentElement]
+        for (let j = 0; j < otherDirections.length; j++) {
+          let secondAdjacentIndices = getAdjacentIndexes(otherDirections[j], parseInt(adjacentIndicesArray[0]), parseInt(adjacentIndicesArray[1]))
+          // check if adjacent element is connected to rotated element
+          if (secondAdjacentIndices === currentIndices) {
+            let newGroupIndex = connections.findIndex(group => group.elements.includes(adjacentIndexes))
+            // check if adjacent element is in another group
+            if (newGroupIndex > -1 && newGroupIndex !== groupIndex) {
+              newConnections.splice(newGroupIndex, 1)
+            }
+            groupBase = [currentIndices, adjacentIndexes]
+            return
           }
         }
       }
@@ -197,7 +234,7 @@ export function removeOldConnections(map: string[], connections: RootState['conn
     let adjacentElement = map[parseInt(adjacentIndexes[0])].split('')[parseInt(adjacentIndexes[1])]
     return symbolsMap[adjacentElement]
   }
-
+  
   if (groupBase.length < 1) {
     newConnections.splice(groupIndex, 1)
   } else {
