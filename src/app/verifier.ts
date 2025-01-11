@@ -150,6 +150,7 @@ export function removeOldConnections(map: string[], connections: RootState['conn
   let newDirections = connectionDirections.filter(direction => !oldDirections.includes(direction))
   let remainingDirections = oldDirections.filter(direction => connectionDirections.includes(direction))
   let groupBase: Array<string> = []
+  let groupIndexToRemove: number = -1
   
   getNewGroupElements()
 
@@ -208,10 +209,11 @@ export function removeOldConnections(map: string[], connections: RootState['conn
     // check new connections if the old group is not found
     for (let i = 0; i < newDirections.length; i++) {
       let adjacentIndexes = getAdjacentIndexes(newDirections[i], lineIndex, segmentIndex)
-      
       let adjacentIndicesArray = adjacentIndexes.split(',')
-      let adjacentElement = map[parseInt(adjacentIndicesArray[0])].split('')[parseInt(adjacentIndicesArray[1])]
-      if (adjacentElement) {
+      // check if adjacent element exists
+      if (parseInt(adjacentIndicesArray[0]) < map.length && parseInt(adjacentIndicesArray[1]) < map.length
+        && parseInt(adjacentIndicesArray[0]) >= 0 && parseInt(adjacentIndicesArray[1]) >= 0) {
+        let adjacentElement = map[parseInt(adjacentIndicesArray[0])].split('')[parseInt(adjacentIndicesArray[1])]
         let otherDirections = symbolsMap[adjacentElement]
         for (let j = 0; j < otherDirections.length; j++) {
           let secondAdjacentIndices = getAdjacentIndexes(otherDirections[j], parseInt(adjacentIndicesArray[0]), parseInt(adjacentIndicesArray[1]))
@@ -220,7 +222,7 @@ export function removeOldConnections(map: string[], connections: RootState['conn
             let newGroupIndex = connections.findIndex(group => group.elements.includes(adjacentIndexes))
             // check if adjacent element is in another group
             if (newGroupIndex > -1 && newGroupIndex !== groupIndex) {
-              newConnections.splice(newGroupIndex, 1)
+              groupIndexToRemove = newGroupIndex
             }
             groupBase = [currentIndices, adjacentIndexes]
             return
@@ -236,9 +238,13 @@ export function removeOldConnections(map: string[], connections: RootState['conn
   }
   
   if (groupBase.length < 1) {
-    newConnections.splice(groupIndex, 1)
+    groupIndexToRemove = groupIndex
   } else {
     newConnections[groupIndex].elements = groupBase
+  }
+
+  if (groupIndexToRemove > -1) {
+    newConnections.splice(groupIndexToRemove, 1)
   }
 
   return newConnections
