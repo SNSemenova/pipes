@@ -5,7 +5,7 @@ import {useContext, useEffect} from "react";
 import "./PipesMap.css"
 import useSegmentColor from './useSegmentColor';
 import {removeOldConnections} from "../../app/verifier";
-import {update} from "../../app/connectionsSlice";
+import { updateConnections } from '../../app/temporaryConnectionsSlice';
 import Segment from './Segment';
 
 function PipesMap(): JSX.Element {
@@ -19,8 +19,8 @@ function PipesMap(): JSX.Element {
   const getSegmentColor = useSegmentColor();
 
   function rotateSegment(lineIndex: number, segmentIndex: number) {
-    let newConnections = removeOldConnections(map, connections, lineIndex, segmentIndex);
-    dispatch(update(newConnections));
+    let temporaryConnections = removeOldConnections(map, connections, lineIndex, segmentIndex);
+    dispatch(updateConnections(temporaryConnections));
     
     socket.sendMessage(`rotate ${segmentIndex} ${lineIndex}`);
     socket.sendMessage('map');
@@ -28,6 +28,7 @@ function PipesMap(): JSX.Element {
 
   useEffect(() => {
     if (level > 1) {
+      dispatch(updateConnections([]));
       socket.sendMessage(`new ${level}`);
       socket.sendMessage('map');
     }

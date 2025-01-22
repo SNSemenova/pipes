@@ -37,7 +37,7 @@ export const SocketManager: React.FC<null> = ({children}) => {
       case 'map:': {
         const puzzleMap = event.data.split('\n').slice(1, -1);
         dispatch(update(puzzleMap));
-        let connections = checkConnections(puzzleMap, store.getState().connections.value)
+        let connections = checkConnections(puzzleMap, store.getState().temporaryConnections.value)
         if (connections.length === 1 && connections[0].elements.length === puzzleMap.length * puzzleMap.length) {
           sendMessage('verify');
         }
