@@ -2,11 +2,6 @@
 
 A game client for a "Pipes" puzzle.
 
-## Level passwords
-
-1. JustWarmingUp
-2. ?
-
 ## How it works
 
 When rotation of a puzzle part is made we go through the puzzle map and verify every element.\

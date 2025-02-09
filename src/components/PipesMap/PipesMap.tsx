@@ -19,7 +19,7 @@ function PipesMap(): JSX.Element {
   const getSegmentColor = useSegmentColor();
 
   function rotateSegment(lineIndex: number, segmentIndex: number) {
-    let temporaryConnections = removeOldConnections(map, connections, lineIndex, segmentIndex);
+    const temporaryConnections = removeOldConnections(map, connections, lineIndex, segmentIndex);
     dispatch(updateConnections(temporaryConnections));
     
     socket.sendMessage(`rotate ${segmentIndex} ${lineIndex}`);

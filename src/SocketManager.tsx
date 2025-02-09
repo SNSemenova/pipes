@@ -15,8 +15,14 @@ type WS = {
 }
 
 export const SocketManager: React.FC<null> = ({children}) => {
-  let socket: WebSocket;
-  let ws: WS;
+  const socket = new WebSocket(SERVER_URL);
+  const sendMessage = (message: string) => {
+    socket.send(message);
+  }
+  const ws = {
+    socket: socket,
+    sendMessage
+  };
 
   const dispatch = useDispatch()
 
@@ -37,7 +43,7 @@ export const SocketManager: React.FC<null> = ({children}) => {
       case 'map:': {
         const puzzleMap = event.data.split('\n').slice(1, -1);
         dispatch(update(puzzleMap));
-        let connections = checkConnections(puzzleMap, store.getState().temporaryConnections.value)
+        const connections = checkConnections(puzzleMap, store.getState().temporaryConnections.value)
         if (connections.length === 1 && connections[0].elements.length === puzzleMap.length * puzzleMap.length) {
           sendMessage('verify');
         }
@@ -61,19 +67,8 @@ export const SocketManager: React.FC<null> = ({children}) => {
     socket.send('map');
   }
 
-  const sendMessage = (message: string) => {
-    socket.send(message);
-  }
-
-  socket = new WebSocket(SERVER_URL);
-
   socket.addEventListener('open', () => startNewLevel(1));
   socket.addEventListener('message', getMessage);
-
-  ws = {
-    socket: socket,
-    sendMessage
-  }
 
   return (
     <SocketContext.Provider value = {ws}>
