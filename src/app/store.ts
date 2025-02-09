@@ -1,8 +1,8 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore } from "@reduxjs/toolkit";
 import mapReducer from "./mapSlice";
-import levelReducer from "./levelSlice"
-import connectionsReducer from "./connectionsSlice"
-import temporaryConnectionsReducer from "./temporaryConnectionsSlice"
+import levelReducer from "./levelSlice";
+import connectionsReducer from "./connectionsSlice";
+import temporaryConnectionsReducer from "./temporaryConnectionsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +11,7 @@ export const store = configureStore({
     connections: connectionsReducer,
     temporaryConnections: temporaryConnectionsReducer,
   },
-})
+});
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
