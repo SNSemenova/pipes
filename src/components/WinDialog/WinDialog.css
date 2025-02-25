@@ -1,0 +1,14 @@
+#win-dialog {
+  border: none;
+  padding: 18px 40px 32px;
+  border-radius: 10px;
+
+  button {
+    border: none;
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: medium;
+    border-radius: 10px;
+  }
+}

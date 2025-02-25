@@ -4,6 +4,7 @@ import { update } from "./app/mapSlice";
 import { increment } from "./app/levelSlice";
 import { checkConnections } from "./app/verifier";
 import { update as connectionUpdate } from "./app/connectionsSlice";
+import onLevelFinish from "./utils/onLevelFinish";
 
 export const SocketContext = createContext({} as WS);
 
@@ -58,9 +59,7 @@ export const SocketManager: React.FC<null> = ({ children }) => {
       }
       case "verify:": {
         if (event.data.includes("Correct!")) {
-          const password = event.data.split(" ").pop();
-          console.log(`password: ${password}`);
-          alert("You win");
+          onLevelFinish();
           dispatch(increment());
         }
         return;
