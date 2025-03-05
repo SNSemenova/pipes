@@ -1,29 +1,39 @@
 .puzzle-segment {
-    padding: 0;
-    border: solid 1px grey;
-    border-top: none;
-    border-left: none;
-    background: none;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    position: relative;
+  padding: 0;
+  border: solid 1px grey;
+  border-top: none;
+  border-left: none;
+  background: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  position: relative;
 }
 
 .puzzle-segment:first-child {
-    border-left: solid 1px grey;
+  border-left: solid 1px grey;
 }
 
 .puzzle-line {
-    display: flex;
+  display: flex;
 }
 
 .puzzle-line:first-child .puzzle-segment {
-    border-top: solid 1px grey;
+  border-top: solid 1px grey;
 }
 
 .puzzle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.next-button {
+  border: none;
+  background: rgb(85, 137, 5);
+  color: white;
+  padding: 8px 12px;
+  font-size: 16px;
+  text-transform: uppercase;
+  margin-top: 20px;
 }

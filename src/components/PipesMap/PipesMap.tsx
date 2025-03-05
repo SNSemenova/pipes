@@ -7,11 +7,15 @@ import useSegmentColor from "./useSegmentColor";
 import { removeOldConnections } from "../../app/verifier";
 import { updateConnections } from "../../app/temporaryConnectionsSlice";
 import Segment from "./Segment";
+import { increment } from "../../app/levelSlice";
 
-function PipesMap(): JSX.Element {
+type Props = {
+  level: number;
+};
+
+function PipesMap({ level }: Props): JSX.Element {
   const socket = useContext(SocketContext);
 
-  const level = useSelector((state: RootState) => state.level.value);
   const map = useSelector((state: RootState) => state.map.value);
   const connections = useSelector(
     (state: RootState) => state.connections.value,
@@ -33,8 +37,10 @@ function PipesMap(): JSX.Element {
     socket.sendMessage("map");
   }
 
+  const isSocketReady = () => socket.socket.readyState === 1;
+
   useEffect(() => {
-    if (level > 1) {
+    if (isSocketReady()) {
       dispatch(updateConnections([]));
       socket.sendMessage(`new ${level}`);
       socket.sendMessage("map");
@@ -59,6 +65,10 @@ function PipesMap(): JSX.Element {
     } else {
       return "center";
     }
+  }
+
+  function nextLevel() {
+    dispatch(increment());
   }
 
   return (
@@ -89,6 +99,9 @@ function PipesMap(): JSX.Element {
           </div>
         ))}
       </div>
+      <button onClick={nextLevel} className="next-button">
+        Next level
+      </button>
     </div>
   );
 }

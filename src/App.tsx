@@ -1,11 +1,11 @@
 import "./App.css";
-import PipesMap from "./components/PipesMap/PipesMap";
+import GameBoard from "./components/GameBoard/GameBoard";
 import WinDialog from "./components/WinDialog/WinDialog";
 
 function App() {
   return (
     <div className="App">
-      <PipesMap />
+      <GameBoard />
       <WinDialog />
     </div>
   );
