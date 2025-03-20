@@ -14,7 +14,13 @@ type Props = {
 };
 
 function PipesMap({ level }: Props): JSX.Element {
-  const socket = useContext(SocketContext);
+  const socketContext = useContext(SocketContext);
+
+  if (!socketContext) {
+    return <p>Error: no WebSocket context</p>;
+  }
+
+  const { message$ } = socketContext;
 
   const map = useSelector((state: RootState) => state.map.value);
   const connections = useSelector(
@@ -33,19 +39,15 @@ function PipesMap({ level }: Props): JSX.Element {
     );
     dispatch(updateConnections(temporaryConnections));
 
-    socket.sendMessage(`rotate ${segmentIndex} ${lineIndex}`);
-    socket.sendMessage("map");
+    message$.next(`rotate ${segmentIndex} ${lineIndex}`);
+    message$.next("map");
   }
 
-  const isSocketReady = () => socket.socket.readyState === 1;
-
   useEffect(() => {
-    if (isSocketReady()) {
-      dispatch(updateConnections([]));
-      socket.sendMessage(`new ${level}`);
-      socket.sendMessage("map");
-    }
-  }, [level, socket]);
+    dispatch(updateConnections([]));
+    message$.next(`new ${level}`);
+    message$.next("map");
+  }, [level]);
 
   function getJustifyItems(segment: string) {
     if (segment === "╺") {

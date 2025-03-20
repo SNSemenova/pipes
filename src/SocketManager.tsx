@@ -5,44 +5,58 @@ import { increment } from "./app/levelSlice";
 import { checkConnections } from "./app/verifier";
 import { update as connectionUpdate } from "./app/connectionsSlice";
 import onLevelFinish from "./utils/onLevelFinish";
-
-export const SocketContext = createContext({} as WS);
+import { webSocket } from "rxjs/webSocket";
+import { Subject, takeUntil, tap } from "rxjs";
 
 const SERVER_URL = "wss://lasting-buzzing-catfish.gigalixirapp.com/api/ws";
 
-type WS = {
-  socket: WebSocket;
-  sendMessage: (message: string) => void;
+export const SocketContext = createContext<SocketContext | null>(null);
+
+type SocketContext = {
+  message$: Subject<string>;
 };
 
 export const SocketManager: React.FC<null> = ({ children }) => {
-  const socket = new WebSocket(SERVER_URL);
-  const sendMessage = (message: string) => {
-    socket.send(message);
-  };
-  const ws = {
-    socket: socket,
-    sendMessage,
-  };
+  const socket$ = webSocket<string>({
+    url: SERVER_URL,
+    serializer: (msg) => msg,
+    deserializer: (event) => event.data,
+  });
+  const message$ = new Subject<string>();
+  const unsubscribe$ = new Subject<void>();
 
   const dispatch = useDispatch();
 
   useEffect(() => {
+    const subscription = socket$
+      .pipe(
+        takeUntil(unsubscribe$),
+        tap({ next: (message: string) => handleMessage(message) }),
+      )
+      .subscribe();
+
+    const sendSubscription = message$
+      .pipe(tap((message) => socket$.next(message)))
+      .subscribe();
+
+    socket$.next("new 1");
+    socket$.next("map");
+
     return () => {
-      socket.removeEventListener("message", getMessage);
+      unsubscribe$.next();
+      unsubscribe$.complete();
+      subscription.unsubscribe();
+      sendSubscription.unsubscribe();
     };
-  });
+  }, []);
 
   const store = useStore();
 
-  function getMessage(event: MessageEvent) {
-    let eventName = event.data.split(" ")[0];
-    if (typeof eventName === "string") {
-      eventName = eventName.split("\n")[0];
-    }
+  function handleMessage(event: string) {
+    const eventName = event.split(" ")[0].split("\n")[0];
     switch (eventName) {
       case "map:": {
-        const puzzleMap = event.data.split("\n").slice(1, -1);
+        const puzzleMap = event.split("\n").slice(1, -1);
         dispatch(update(puzzleMap));
         const connections = checkConnections(
           puzzleMap,
@@ -52,28 +66,28 @@ export const SocketManager: React.FC<null> = ({ children }) => {
           connections.length === 1 &&
           connections[0].elements.length === puzzleMap.length * puzzleMap.length
         ) {
-          sendMessage("verify");
+          message$.next("verify");
         }
         dispatch(connectionUpdate(connections));
         return;
       }
       case "verify:": {
-        if (event.data.includes("Correct!")) {
+        if (event.includes("Correct!")) {
           onLevelFinish();
           dispatch(increment());
         }
         return;
       }
+      case "Echo:": {
+        console.log(`Unhandled event: ${event}`);
+        return;
+      }
     }
   }
 
-  function startNewLevel(currentLevel: number) {
-    socket.send(`new ${currentLevel}`);
-    socket.send("map");
-  }
-
-  socket.addEventListener("open", () => startNewLevel(1));
-  socket.addEventListener("message", getMessage);
-
-  return <SocketContext.Provider value={ws}>{children}</SocketContext.Provider>;
+  return (
+    <SocketContext.Provider value={{ message$ }}>
+      {children}
+    </SocketContext.Provider>
+  );
 };
