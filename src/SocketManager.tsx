@@ -6,7 +6,7 @@ import { checkConnections } from "./app/verifier";
 import { update as connectionUpdate } from "./app/connectionsSlice";
 import onLevelFinish from "./utils/onLevelFinish";
 import { webSocket } from "rxjs/webSocket";
-import { Subject, takeUntil, tap } from "rxjs";
+import { switchMap, timer, Subject, takeUntil, tap, repeat } from "rxjs";
 
 const SERVER_URL = "wss://lasting-buzzing-catfish.gigalixirapp.com/api/ws";
 
@@ -28,6 +28,22 @@ export const SocketManager: React.FC<null> = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    const keepAliveTrigger$ = new Subject<void>();
+
+    const keepAliveSubscription = keepAliveTrigger$
+      .pipe(
+        switchMap(() =>
+          timer(30000).pipe(
+            tap(() => {
+              socket$.next("ping");
+            }),
+            repeat(),
+          ),
+        ),
+        takeUntil(unsubscribe$),
+      )
+      .subscribe();
+
     const subscription = socket$
       .pipe(
         takeUntil(unsubscribe$),
@@ -36,7 +52,14 @@ export const SocketManager: React.FC<null> = ({ children }) => {
       .subscribe();
 
     const sendSubscription = message$
-      .pipe(tap((message) => socket$.next(message)))
+      .pipe(
+        tap({
+          next: (message: string) => {
+            socket$.next(message);
+            keepAliveTrigger$.next();
+          },
+        }),
+      )
       .subscribe();
 
     socket$.next("new 1");
@@ -45,6 +68,8 @@ export const SocketManager: React.FC<null> = ({ children }) => {
     return () => {
       unsubscribe$.next();
       unsubscribe$.complete();
+      keepAliveTrigger$.complete();
+      keepAliveSubscription.unsubscribe();
       subscription.unsubscribe();
       sendSubscription.unsubscribe();
     };
@@ -76,10 +101,6 @@ export const SocketManager: React.FC<null> = ({ children }) => {
           onLevelFinish();
           dispatch(increment());
         }
-        return;
-      }
-      case "Echo:": {
-        console.log(`Unhandled event: ${event}`);
         return;
       }
     }
