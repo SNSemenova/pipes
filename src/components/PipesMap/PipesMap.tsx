@@ -7,7 +7,7 @@ import useSegmentColor from "./useSegmentColor";
 import { removeOldConnections } from "../../app/verifier";
 import { updateConnections } from "../../app/temporaryConnectionsSlice";
 import Segment from "./Segment";
-import { increment } from "../../app/levelSlice";
+import Spinner from "../Spinner/Spinner";
 
 type Props = {
   level: number;
@@ -69,41 +69,32 @@ function PipesMap({ level }: Props): JSX.Element {
     }
   }
 
-  function nextLevel() {
-    dispatch(increment());
-  }
-
   return (
-    <div>
-      <h1>Level {level}</h1>
-      <div className="puzzle">
-        {map.map((line: string, lineIndex) => (
-          <div className="puzzle-line" key={lineIndex}>
-            {line.split("").map((segment, segmentIndex) => {
-              return (
-                <button
-                  className="puzzle-segment"
-                  key={`${lineIndex}-${segmentIndex}`}
-                  onClick={() => rotateSegment(lineIndex, segmentIndex)}
-                  style={{
-                    color: getSegmentColor(lineIndex, segmentIndex),
-                    justifyContent: getJustifyItems(segment),
-                    alignItems: getAlignItems(segment),
-                  }}
-                >
-                  <Segment
-                    segment={segment}
-                    color={getSegmentColor(lineIndex, segmentIndex)}
-                  />
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-      <button onClick={nextLevel} className="next-button">
-        Next level
-      </button>
+    <div className="puzzle">
+      {map.length === 0 && <Spinner />}
+      {map.map((line: string, lineIndex) => (
+        <div className="puzzle-line" key={lineIndex}>
+          {line.split("").map((segment, segmentIndex) => {
+            return (
+              <button
+                className="puzzle-segment"
+                key={`${lineIndex}-${segmentIndex}`}
+                onClick={() => rotateSegment(lineIndex, segmentIndex)}
+                style={{
+                  color: getSegmentColor(lineIndex, segmentIndex),
+                  justifyContent: getJustifyItems(segment),
+                  alignItems: getAlignItems(segment),
+                }}
+              >
+                <Segment
+                  segment={segment}
+                  color={getSegmentColor(lineIndex, segmentIndex)}
+                />
+              </button>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

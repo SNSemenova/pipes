@@ -2,10 +2,21 @@ import { useDispatch, useSelector } from "react-redux";
 import PipesMap from "../PipesMap/PipesMap";
 import { RootState } from "../../app/store";
 import "./GameBoard.css";
-import { setLevel } from "../../app/levelSlice";
+import { increment, setLevel } from "../../app/levelSlice";
 import { update } from "../../app/mapSlice";
+import { useContext } from "react";
+import { SocketContext } from "../../SocketManager";
+import { updateConnections } from "../../app/temporaryConnectionsSlice";
 
 const GameBoard = () => {
+  const socketContext = useContext(SocketContext);
+
+  if (!socketContext) {
+    return <p>Error: no WebSocket context</p>;
+  }
+
+  const { message$ } = socketContext;
+
   const level = useSelector((state: RootState) => state.level.value);
   const dispatch = useDispatch();
 
@@ -16,16 +27,51 @@ const GameBoard = () => {
 
   if (level > 3) {
     return (
-      <div className="no-levels">
-        There&apos;s no more levels. <br /> You can go
-        <button onClick={handleClick} className="back-button">
-          back to the first level
-        </button>
-        .
+      <div className="game-container">
+        <div className="no-levels">
+          There&apos;s no more levels. <br /> You can go
+          <button onClick={handleClick} className="back-button">
+            back to the first level
+          </button>
+          .
+        </div>
       </div>
     );
   }
-  return <PipesMap level={level} />;
+
+  function nextLevel() {
+    dispatch(increment());
+  }
+
+  function handleRestart() {
+    if (level === 1) {
+      dispatch(updateConnections([]));
+      message$.next("new 1");
+      message$.next("map");
+    }
+    dispatch(setLevel(1));
+  }
+
+  return (
+    <div className="game-container">
+      <h1 className="game-title">Level {level}</h1>
+      <p className="game-description">
+        Connect the pipes to let the water flow! Click on elements to rotate
+        them and solve the puzzle.
+      </p>
+      <div className="game-board-container">
+        <PipesMap level={level} />
+        <div className="controls">
+          <button onClick={handleRestart} className="button restart">
+            Restart
+          </button>
+          <button onClick={nextLevel} className="button next">
+            Next level
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default GameBoard;
