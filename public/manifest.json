@@ -1,6 +1,8 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Pipes",
+  "name": "'Pipes' puzzle game",
+  "description": "A puzzle game where you have to connect all the pipes",
+  "lang": "en",
   "icons": [
     {
       "src": "favicon.ico",
