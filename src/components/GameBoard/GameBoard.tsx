@@ -15,7 +15,7 @@ const GameBoard = () => {
     return <p>Error: no WebSocket context</p>;
   }
 
-  const { message$ } = socketContext;
+  const { message$, isConnectionOpen } = socketContext;
 
   const level = useSelector((state: RootState) => state.level.value);
   const dispatch = useDispatch();
@@ -24,6 +24,14 @@ const GameBoard = () => {
     dispatch(update([]));
     dispatch(setLevel(1));
   };
+
+  if (!isConnectionOpen) {
+    return (
+      <div className="game-container">
+        Connection lost. Please refresh the page to reconnect.
+      </div>
+    );
+  }
 
   if (level > 3) {
     return (

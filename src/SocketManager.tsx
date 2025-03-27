@@ -1,4 +1,4 @@
-import React, { createContext, useEffect } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { useDispatch, useStore } from "react-redux";
 import { update } from "./app/mapSlice";
 import { increment } from "./app/levelSlice";
@@ -6,17 +6,20 @@ import { checkConnections } from "./app/verifier";
 import { update as connectionUpdate } from "./app/connectionsSlice";
 import onLevelFinish from "./utils/onLevelFinish";
 import { webSocket } from "rxjs/webSocket";
-import { switchMap, timer, Subject, takeUntil, tap, repeat } from "rxjs";
+import { switchMap, interval, Subject, takeUntil, tap, startWith } from "rxjs";
 
 const SERVER_URL = "wss://lasting-buzzing-catfish.gigalixirapp.com/api/ws";
+const KEEP_ALIVE_INTERVAL = 30 * 1000;
 
 export const SocketContext = createContext<SocketContext | null>(null);
 
 type SocketContext = {
   message$: Subject<string>;
+  isConnectionOpen: boolean;
 };
 
 export const SocketManager: React.FC<null> = ({ children }) => {
+  const [isConnectionOpen, setIsConnectionOpen] = useState(true);
   const socket$ = webSocket<string>({
     url: SERVER_URL,
     serializer: (msg) => msg,
@@ -32,15 +35,13 @@ export const SocketManager: React.FC<null> = ({ children }) => {
 
     const keepAliveSubscription = keepAliveTrigger$
       .pipe(
+        startWith(null),
         switchMap(() =>
-          timer(30000).pipe(
-            tap(() => {
-              socket$.next("ping");
-            }),
-            repeat(),
+          interval(KEEP_ALIVE_INTERVAL).pipe(
+            tap(() => message$.next("ping")),
+            takeUntil(unsubscribe$),
           ),
         ),
-        takeUntil(unsubscribe$),
       )
       .subscribe();
 
@@ -49,7 +50,13 @@ export const SocketManager: React.FC<null> = ({ children }) => {
         takeUntil(unsubscribe$),
         tap({ next: (message: string) => handleMessage(message) }),
       )
-      .subscribe();
+      .subscribe({
+        error: (err) => {
+          console.error("Socket error:", err);
+          setIsConnectionOpen(false);
+        },
+        complete: () => setIsConnectionOpen(false),
+      });
 
     const sendSubscription = message$
       .pipe(
@@ -107,7 +114,7 @@ export const SocketManager: React.FC<null> = ({ children }) => {
   }
 
   return (
-    <SocketContext.Provider value={{ message$ }}>
+    <SocketContext.Provider value={{ message$, isConnectionOpen }}>
       {children}
     </SocketContext.Provider>
   );
