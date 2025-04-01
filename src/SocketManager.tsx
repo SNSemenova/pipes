@@ -4,9 +4,11 @@ import { update } from "./app/mapSlice";
 import { increment } from "./app/levelSlice";
 import { checkConnections } from "./app/verifier";
 import { update as connectionUpdate } from "./app/connectionsSlice";
+import { update as setInitialMap } from "./app/initialMapSlice";
 import onLevelFinish from "./utils/onLevelFinish";
 import { webSocket } from "rxjs/webSocket";
 import { switchMap, interval, Subject, takeUntil, tap, startWith } from "rxjs";
+import { newMap } from "./app/rotationsSlice";
 
 const SERVER_URL = "wss://lasting-buzzing-catfish.gigalixirapp.com/api/ws";
 const KEEP_ALIVE_INTERVAL = 30 * 1000;
@@ -25,8 +27,8 @@ export const SocketManager: React.FC<null> = ({ children }) => {
     serializer: (msg) => msg,
     deserializer: (event) => event.data,
   });
-  const message$ = new Subject<string>();
-  const unsubscribe$ = new Subject<void>();
+  const message$ = React.useRef(new Subject<string>()).current;
+  const unsubscribe$ = React.useRef(new Subject<void>()).current;
 
   const dispatch = useDispatch();
 
@@ -89,6 +91,11 @@ export const SocketManager: React.FC<null> = ({ children }) => {
     switch (eventName) {
       case "map:": {
         const puzzleMap = event.split("\n").slice(1, -1);
+        const initial = store.getState().initialMap.value;
+        if (initial.length === 0) {
+          dispatch(setInitialMap(puzzleMap));
+          dispatch(newMap(puzzleMap.length));
+        }
         dispatch(update(puzzleMap));
         const connections = checkConnections(
           puzzleMap,

@@ -13,7 +13,12 @@ function getBorderRadius(segment: string) {
   }
 }
 
-const Segment = ({ segment, color }: { segment: string; color: string }) => {
+type Props = {
+  segment: string;
+  color: string;
+};
+
+const Segment = ({ segment, color }: Props) => {
   if (
     segment === "╺" ||
     segment === "╻" ||
