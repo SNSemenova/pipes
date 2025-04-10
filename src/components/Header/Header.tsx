@@ -9,9 +9,12 @@ function Header(): JSX.Element {
           <div className="brand-name">FlowPipes</div>
         </div>
         <nav className="nav-links">
-          <div className="nav-link">Home</div>
-          <div className="nav-link">Levels</div>
-          <div className="nav-link">About</div>
+          <a className="nav-link" href="/">
+            Home
+          </a>
+          <a className="nav-link" href="/about">
+            About
+          </a>
         </nav>
       </div>
     </header>

@@ -26,23 +26,17 @@ const GameBoard = () => {
   };
 
   if (!isConnectionOpen) {
-    return (
-      <div className="game-container">
-        Connection lost. Please refresh the page to reconnect.
-      </div>
-    );
+    return <div>Connection lost. Please refresh the page to reconnect.</div>;
   }
 
   if (level > 3) {
     return (
-      <div className="game-container">
-        <div className="no-levels">
-          There&apos;s no more levels. <br /> You can go
-          <button onClick={handleClick} className="back-button">
-            back to the first level
-          </button>
-          .
-        </div>
+      <div className="no-levels">
+        There&apos;s no more levels. <br /> You can go
+        <button onClick={handleClick} className="back-button">
+          back to the first level
+        </button>
+        .
       </div>
     );
   }
@@ -61,7 +55,7 @@ const GameBoard = () => {
   }
 
   return (
-    <div className="game-container">
+    <>
       <h1 className="game-title">Level {level}</h1>
       <p className="game-description">
         Connect the pipes to let the water flow! Click on elements to rotate
@@ -78,7 +72,7 @@ const GameBoard = () => {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -11,15 +11,6 @@
   font-size: 24px;
 }
 
-.game-container {
-  display: flex;
-  min-height: calc(100vh - 68px);
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(14, 165, 233, 0.2);
-}
-
 .game-title {
   font-size: 24px;
   font-weight: bold;
