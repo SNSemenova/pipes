@@ -82,34 +82,42 @@ function PipesMap({ level }: Props): JSX.Element {
   return (
     <div className="puzzle">
       {initialMap.length === 0 && <Spinner />}
-      {initialMap.map((line: string, lineIndex) => (
-        <div className="puzzle-line" key={lineIndex}>
-          {line.split("").map((segment, segmentIndex) => {
-            return (
-              <button
-                className="puzzle-segment"
-                key={`${lineIndex}-${segmentIndex}`}
-                onClick={() => rotateSegment(lineIndex, segmentIndex)}
-              >
-                <div
-                  className="puzzle-element"
-                  style={{
-                    transform: getRotation(lineIndex, segmentIndex),
-                    justifyContent: getJustifyItems(segment),
-                    alignItems: getAlignItems(segment),
-                    color: getSegmentColor(lineIndex, segmentIndex),
-                  }}
+      {initialMap.length > 0 && (
+        <div
+          className="puzzle-grid"
+          style={{
+            gridTemplateColumns: `repeat(${initialMap.length}, 1fr)`,
+            gridTemplateRows: `repeat(${initialMap.length}, 1fr)`,
+          }}
+        >
+          {initialMap.map((line: string, lineIndex) =>
+            line.split("").map((segment, segmentIndex) => {
+              return (
+                <button
+                  className="puzzle-segment"
+                  key={`${lineIndex}-${segmentIndex}`}
+                  onClick={() => rotateSegment(lineIndex, segmentIndex)}
                 >
-                  <Segment
-                    segment={segment}
-                    color={getSegmentColor(lineIndex, segmentIndex)}
-                  />
-                </div>
-              </button>
-            );
-          })}
+                  <div
+                    className="puzzle-element"
+                    style={{
+                      transform: getRotation(lineIndex, segmentIndex),
+                      justifyContent: getJustifyItems(segment),
+                      alignItems: getAlignItems(segment),
+                      color: getSegmentColor(lineIndex, segmentIndex),
+                    }}
+                  >
+                    <Segment
+                      segment={segment}
+                      color={getSegmentColor(lineIndex, segmentIndex)}
+                    />
+                  </div>
+                </button>
+              );
+            }),
+          )}
         </div>
-      ))}
+      )}
     </div>
   );
 }

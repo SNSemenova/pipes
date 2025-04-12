@@ -13,6 +13,12 @@ function getBorderRadius(segment: string) {
   }
 }
 
+const elementLength = "60%";
+const elementWidth = "25%";
+const isHorizontal = (segment: string) => {
+  return segment === "╸" || segment === "╺";
+};
+
 type Props = {
   segment: string;
   color: string;
@@ -28,8 +34,8 @@ const Segment = ({ segment, color }: Props) => {
     return (
       <div
         style={{
-          width: "10px",
-          height: "10px",
+          width: isHorizontal(segment) ? elementLength : elementWidth,
+          height: isHorizontal(segment) ? elementWidth : elementLength,
           borderRadius: getBorderRadius(segment),
           background: color,
         }}
@@ -37,26 +43,30 @@ const Segment = ({ segment, color }: Props) => {
     );
   }
   if (segment === "━") {
-    return <div style={{ width: "39px", height: "10px", background: color }} />;
+    return (
+      <div style={{ width: "100%", height: elementWidth, background: color }} />
+    );
   }
   if (segment === "┃") {
-    return <div style={{ width: "10px", height: "39px", background: color }} />;
+    return (
+      <div style={{ width: elementWidth, height: "100%", background: color }} />
+    );
   }
   if (segment === "┏") {
     return (
       <>
         <div
           style={{
-            width: "10px",
-            height: "23px",
+            width: elementWidth,
+            height: elementLength,
             borderRadius: "30px 0 0 0",
             background: color,
           }}
         />
         <div
           style={{
-            width: "23px",
-            height: "10px",
+            width: elementLength,
+            height: elementWidth,
             position: "absolute",
             right: 0,
             top: "50%",
@@ -73,16 +83,16 @@ const Segment = ({ segment, color }: Props) => {
       <>
         <div
           style={{
-            width: "10px",
-            height: "23px",
+            width: elementWidth,
+            height: elementLength,
             borderRadius: "0 30px 0 0",
             background: color,
           }}
         />
         <div
           style={{
-            width: "23px",
-            height: "10px",
+            width: elementLength,
+            height: elementWidth,
             position: "absolute",
             left: 0,
             top: "50%",
@@ -99,16 +109,16 @@ const Segment = ({ segment, color }: Props) => {
       <>
         <div
           style={{
-            width: "10px",
-            height: "23px",
+            width: elementWidth,
+            height: elementLength,
             borderRadius: "0 0 0 30px",
             background: color,
           }}
         />
         <div
           style={{
-            width: "24px",
-            height: "10px",
+            width: "62%",
+            height: elementWidth,
             position: "absolute",
             right: 0,
             top: "50%",
@@ -125,16 +135,16 @@ const Segment = ({ segment, color }: Props) => {
       <>
         <div
           style={{
-            width: "10px",
-            height: "23px",
+            width: elementWidth,
+            height: elementLength,
             borderRadius: "0 0 30px 0",
             background: color,
           }}
         />
         <div
           style={{
-            width: "23px",
-            height: "10px",
+            width: elementLength,
+            height: elementWidth,
             position: "absolute",
             left: 0,
             top: "50%",
@@ -149,11 +159,13 @@ const Segment = ({ segment, color }: Props) => {
   if (segment === "╋") {
     return (
       <>
-        <div style={{ width: "39px", height: "10px", background: color }} />
+        <div
+          style={{ width: "100%", height: elementWidth, background: color }}
+        />
         <div
           style={{
-            width: "10px",
-            height: "39px",
+            width: elementWidth,
+            height: "100%",
             position: "absolute",
             background: color,
           }}
@@ -164,11 +176,13 @@ const Segment = ({ segment, color }: Props) => {
   if (segment === "┫") {
     return (
       <>
-        <div style={{ width: "10px", height: "39px", background: color }} />
+        <div
+          style={{ width: elementWidth, height: "100%", background: color }}
+        />
         <div
           style={{
-            width: "24px",
-            height: "10px",
+            width: "62%",
+            height: elementWidth,
             position: "absolute",
             left: 0,
             top: "50%",
@@ -182,11 +196,13 @@ const Segment = ({ segment, color }: Props) => {
   if (segment === "┳") {
     return (
       <>
-        <div style={{ width: "39px", height: "10px", background: color }} />
+        <div
+          style={{ width: "100%", height: elementWidth, background: color }}
+        />
         <div
           style={{
-            width: "10px",
-            height: "24px",
+            width: elementWidth,
+            height: "62%",
             position: "absolute",
             bottom: 0,
             background: color,
@@ -198,11 +214,13 @@ const Segment = ({ segment, color }: Props) => {
   if (segment === "┻") {
     return (
       <>
-        <div style={{ width: "39px", height: "10px", background: color }} />
+        <div
+          style={{ width: "100%", height: elementWidth, background: color }}
+        />
         <div
           style={{
-            width: "10px",
-            height: "24px",
+            width: elementWidth,
+            height: "62%",
             position: "absolute",
             top: 0,
             background: color,
@@ -214,11 +232,13 @@ const Segment = ({ segment, color }: Props) => {
   if (segment === "┣") {
     return (
       <>
-        <div style={{ width: "10px", height: "39px", background: color }} />
+        <div
+          style={{ width: elementWidth, height: "100%", background: color }}
+        />
         <div
           style={{
-            width: "24px",
-            height: "10px",
+            width: "62%",
+            height: elementWidth,
             position: "absolute",
             right: 0,
             background: color,

@@ -33,6 +33,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 90vmin;
+  box-sizing: border-box;
 }
 
 .controls {
