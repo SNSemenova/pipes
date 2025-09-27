@@ -10,7 +10,7 @@ import { webSocket } from "rxjs/webSocket";
 import { switchMap, interval, Subject, takeUntil, tap, startWith } from "rxjs";
 import { newMap } from "./app/rotationsSlice";
 
-const SERVER_URL = "wss://lasting-buzzing-catfish.gigalixirapp.com/api/ws";
+const SERVER_URL = process.env.REACT_APP_WEB_SOCKET_URL || "";
 const KEEP_ALIVE_INTERVAL = 30 * 1000;
 
 export const SocketContext = createContext<SocketContext | null>(null);
@@ -112,6 +112,7 @@ export const SocketManager: React.FC<null> = ({ children }) => {
       }
       case "verify:": {
         if (event.includes("Correct!")) {
+          markCompleted(store.getState().level.value);
           onLevelFinish();
           dispatch(increment());
         }
@@ -119,6 +120,14 @@ export const SocketManager: React.FC<null> = ({ children }) => {
       }
     }
   }
+
+  const markCompleted = (level: number) => {
+    const storageItem = localStorage.getItem("completed");
+    const completed = storageItem ? storageItem.split(" ") : "";
+    if (!completed.includes(level.toString())) {
+      localStorage.setItem("completed", `${completed} ${level}`);
+    }
+  };
 
   return (
     <SocketContext.Provider value={{ message$, isConnectionOpen }}>
