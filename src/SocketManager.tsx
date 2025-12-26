@@ -90,7 +90,7 @@ export const SocketManager: React.FC<null> = ({ children }) => {
     const eventName = event.split(" ")[0].split("\n")[0];
     switch (eventName) {
       case "map:": {
-        const puzzleMap = event.split("\n").slice(1, -1);
+        const puzzleMap = event.split("\n").slice(1);
         const initial = store.getState().initialMap.value;
         if (initial.length === 0) {
           dispatch(setInitialMap(puzzleMap));
