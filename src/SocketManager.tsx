@@ -12,12 +12,14 @@ import { newMap } from "./app/rotationsSlice";
 
 const SERVER_URL = process.env.REACT_APP_WEB_SOCKET_URL || "";
 const KEEP_ALIVE_INTERVAL = 30 * 1000;
+const USE_HTTP_GAME_API = process.env.REACT_APP_GAME_TRANSPORT === "http";
 
 export const SocketContext = createContext<SocketContext | null>(null);
 
 type SocketContext = {
   message$: Subject<string>;
   isConnectionOpen: boolean;
+  transport: "websocket" | "http";
 };
 
 export const SocketManager: React.FC<null> = ({ children }) => {
@@ -29,10 +31,81 @@ export const SocketManager: React.FC<null> = ({ children }) => {
   });
   const message$ = React.useRef(new Subject<string>()).current;
   const unsubscribe$ = React.useRef(new Subject<void>()).current;
+  const httpStateToken = React.useRef<string | null>(null);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (USE_HTTP_GAME_API) {
+      httpStateToken.current = null;
+      let commandQueue = Promise.resolve();
+      let initializationQueued = false;
+      let skipNextMapRead = false;
+
+      const sendSubscription = message$.subscribe((message) => {
+        if (message.startsWith("new ")) initializationQueued = true;
+        commandQueue = commandQueue
+          .then(async () => {
+            const [command, first, second] = message.trim().split(" ");
+            if (command === "new") {
+              const result = await postGame("new", {
+                level: Number(first || 1),
+              });
+              httpStateToken.current = result.stateToken;
+              applyMap(result.map);
+              skipNextMapRead = true;
+              return;
+            }
+
+            if (!httpStateToken.current)
+              throw new Error("Game state has not been initialized");
+
+            if (command === "map") {
+              if (skipNextMapRead) {
+                skipNextMapRead = false;
+                return;
+              }
+              const result = await postGame("map", {
+                stateToken: httpStateToken.current,
+              });
+              httpStateToken.current = result.stateToken;
+              await applyHttpMap(result.map);
+            } else if (command === "rotate") {
+              const result = await postGame("rotate", {
+                stateToken: httpStateToken.current,
+                column: Number(first),
+                row: Number(second),
+              });
+              httpStateToken.current = result.stateToken;
+              skipNextMapRead = true;
+            } else if (command === "verify") {
+              const result = await postGame("verify", {
+                stateToken: httpStateToken.current,
+              });
+              httpStateToken.current = result.stateToken;
+              if (result.correct) {
+                markCompleted(store.getState().level.value);
+                onLevelFinish();
+                dispatch(increment());
+              }
+            }
+          })
+          .catch((error: unknown) => {
+            console.error("Game API error:", error);
+            setIsConnectionOpen(false);
+          });
+      });
+
+      Promise.resolve().then(() => {
+        if (!initializationQueued) {
+          message$.next("new 1");
+          message$.next("map");
+        }
+      });
+
+      return () => sendSubscription.unsubscribe();
+    }
+
     const keepAliveTrigger$ = new Subject<void>();
 
     const keepAliveSubscription = keepAliveTrigger$
@@ -121,6 +194,41 @@ export const SocketManager: React.FC<null> = ({ children }) => {
     }
   }
 
+  function applyMap(puzzleMap: string[]) {
+    if (!puzzleMap || puzzleMap.length === 0) {
+      throw new Error("Game API returned an empty map");
+    }
+    const initial = store.getState().initialMap.value;
+    if (initial.length === 0) {
+      dispatch(setInitialMap(puzzleMap));
+      dispatch(newMap(puzzleMap.length));
+    }
+    dispatch(update(puzzleMap));
+    const connections = checkConnections(
+      puzzleMap,
+      store.getState().temporaryConnections.value,
+    );
+    dispatch(connectionUpdate(connections));
+    return (
+      connections.length === 1 &&
+      connections[0].elements.length === puzzleMap.length * puzzleMap.length
+    );
+  }
+
+  async function applyHttpMap(puzzleMap: string[]) {
+    if (applyMap(puzzleMap) && httpStateToken.current) {
+      const result = await postGame("verify", {
+        stateToken: httpStateToken.current,
+      });
+      httpStateToken.current = result.stateToken;
+      if (result.correct) {
+        markCompleted(store.getState().level.value);
+        onLevelFinish();
+        dispatch(increment());
+      }
+    }
+  }
+
   const markCompleted = (level: number) => {
     const storageItem = localStorage.getItem("completed");
     const completed = storageItem ? storageItem.split(" ") : "";
@@ -130,8 +238,34 @@ export const SocketManager: React.FC<null> = ({ children }) => {
   };
 
   return (
-    <SocketContext.Provider value={{ message$, isConnectionOpen }}>
+    <SocketContext.Provider
+      value={{
+        message$,
+        isConnectionOpen,
+        transport: USE_HTTP_GAME_API ? "http" : "websocket",
+      }}
+    >
       {children}
     </SocketContext.Provider>
   );
 };
+
+type GameApiResult = {
+  map: string[];
+  stateToken: string;
+  correct?: boolean;
+};
+
+async function postGame(
+  action: "new" | "map" | "rotate" | "verify",
+  values: Record<string, string | number>,
+): Promise<GameApiResult> {
+  const response = await fetch("/api/game", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, ...values }),
+  });
+  const result = (await response.json()) as GameApiResult & { error?: string };
+  if (!response.ok) throw new Error(result.error || "Game API request failed");
+  return result;
+}

@@ -4,12 +4,18 @@ import { SocketContext } from "../../SocketManager";
 import { useContext, useEffect } from "react";
 import "./PipesMap.css";
 import useSegmentColor from "./useSegmentColor";
-import { removeOldConnections } from "../../app/verifier";
+import {
+  checkConnections,
+  removeOldConnections,
+  rotationMap,
+} from "../../app/verifier";
 import { updateConnections } from "../../app/temporaryConnectionsSlice";
+import { update as updateConnectionGroups } from "../../app/connectionsSlice";
 import Segment from "./Segment";
 import Spinner from "../Spinner/Spinner";
 import { rotate } from "../../app/rotationsSlice";
 import { update as setInitialMap } from "../../app/initialMapSlice";
+import { update as setMap } from "../../app/mapSlice";
 
 type Props = {
   level: number;
@@ -22,7 +28,7 @@ function PipesMap({ level }: Props): JSX.Element {
     return <p>Error: no WebSocket context</p>;
   }
 
-  const { message$ } = socketContext;
+  const { message$, transport } = socketContext;
 
   const map = useSelector((state: RootState) => state.map.value);
   const initialMap = useSelector((state: RootState) => state.initialMap.value);
@@ -35,16 +41,38 @@ function PipesMap({ level }: Props): JSX.Element {
   const getSegmentColor = useSegmentColor();
 
   function rotateSegment(lineIndex: number, segmentIndex: number) {
-    const temporaryConnections = removeOldConnections(
+    const preservedConnections = removeOldConnections(
       map,
       connections,
       lineIndex,
       segmentIndex,
     );
-    dispatch(updateConnections(temporaryConnections));
+
+    const updatedMap = map.map((line, row) => {
+      if (row !== lineIndex) return line;
+      const segments = line.split("");
+      segments[segmentIndex] = rotationMap[segments[segmentIndex]];
+      return segments.join("");
+    });
+    const updatedConnections = checkConnections(
+      updatedMap,
+      preservedConnections,
+    );
+
+    dispatch(setMap(updatedMap));
+    dispatch(updateConnectionGroups(updatedConnections));
+    dispatch(updateConnections(updatedConnections));
 
     message$.next(`rotate ${segmentIndex} ${lineIndex}`);
     message$.next("map");
+    if (
+      transport === "http" &&
+      updatedConnections.length === 1 &&
+      updatedConnections[0].elements.length ===
+        updatedMap.length * updatedMap.length
+    ) {
+      message$.next("verify");
+    }
     dispatch(rotate({ lineIndex, segmentIndex }));
   }
 
