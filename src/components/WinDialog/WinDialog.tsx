@@ -8,10 +8,12 @@ const WinDialog = () => {
 
   return (
     <dialog id="win-dialog">
-      <h1>Correct!</h1>
-      <button autoFocus onClick={handleClick}>
-        Next level
-      </button>
+      <div id="dialog-content">
+        <h1>Correct!</h1>
+        <button autoFocus onClick={handleClick}>
+          Next level
+        </button>
+      </div>
     </dialog>
   );
 };

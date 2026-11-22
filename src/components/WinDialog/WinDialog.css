@@ -3,10 +3,15 @@
   padding: 18px 40px 32px;
   border-radius: 10px;
 
+  #dialog-content {
+    display: flex;
+    flex-direction: column;
+  }
+
   button {
     border: none;
     padding: 8px 16px;
-    background-color: #4CAF50;
+    background-color: #4caf50;
     color: white;
     font-size: medium;
     border-radius: 10px;
